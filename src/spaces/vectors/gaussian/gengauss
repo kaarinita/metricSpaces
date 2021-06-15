@@ -1,0 +1,4 @@
+
+# usage: gengauss <num clusters> <dim> <variance> <num points>  > outputfile
+echo $2 $4 2 
+perl gaussoraConf.pl $1 $2 $3 | gaussora -n $4 -q 0 | sed 's/^ //'

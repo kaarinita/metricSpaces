@@ -1,0 +1,35 @@
+#!/bin/tcsh
+# index $1 $2 indexes the files in directory $1 and creates vocabularies in $2
+setenv LC_ALL POSIX
+rm -rf tmp
+mkdir tmp
+cd tmp
+set a=`pwd`
+cd ..
+rm -rf $2
+mkdir $2
+cd $2
+set trg=`pwd`
+cd $a/..
+cd $1
+ls -l * | wc > $a/all.idf0
+foreach i (*)
+  sed 's/[^a-zA-Z0-9][^a-zA-Z0-9]*/\n/g' $i | grep -v '^ *$' | $a/../tolower | sort | $a/../count > $a/$i.vocab0
+  sed 's/ [0-9]*$//' $a/$i.vocab0 > $a/$i.vocab1
+end
+#cat $a/*.vocab1 | sort | $a/../count > $a/all.idf1
+cd $a/..
+perl -e 'foreach (`ls tmp/*.vocab1`) {system "cat $_";}' | sort | count > tmp/all.idf1
+cd $1
+sed 's/ /+/' $a/all.idf1 > $a/all.idf2
+foreach i (*)
+  rm $a/$i.vocab1
+  cat $a/$i.vocab0 $a/all.idf2 | sort > $a/$i.vocab2
+  rm $a/$i.vocab0
+  $a/../compute `cat $a/all.idf0` < $a/$i.vocab2 | sort > $a/$i.vocab3
+  rm $a/$i.vocab2
+  $a/../finalize $trg/$i < $a/$i.vocab3
+  rm $a/$i.vocab3
+end
+cd $a/..
+rm -rf tmp
